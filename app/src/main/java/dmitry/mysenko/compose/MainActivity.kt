@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Screen("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est. Quisque vitae sapien eu tortor facilisis viverra. Aenean ut lectus risus. Pellentesque nec tellus efficitur, finibus justo ac, efficitur massa. Mauris ac neque nec ipsum eleifend rhoncus. Sed elementum lectus nec nibh suscipit ultrices. Aliquam sodales pharetra orci ut aliquet. Vivamus eu varius magna.")
+                Screen("Lorem ipsum dolor sit amet, consectetur adipiscing elit. \nNunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. \nAenean congue nisi a dui fringilla, ut lobortis magna lacinia. \nDonec vitae neque enim. Quisque vel ligula lacus. \nPraesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est. \nQuisque vitae sapien eu tortor facilisis viverra. Aenean ut lectus risus. Pellentesque nec tellus efficitur, finibus justo ac, efficitur massa. Mauris ac neque nec ipsum eleifend rhoncus. Sed elementum lectus nec nibh suscipit ultrices. Aliquam sodales pharetra orci ut aliquet. Vivamus eu varius magna.")
             }
         }
     }
@@ -47,18 +47,20 @@ fun Screen(text: String) {
         TextAroundContent(
             text = text,
             color = Color.Black,
-            fontSize = 22.sp,
+            fontSize = 16.sp,
             fontStyle = FontStyle.Italic,
             lineHeight = 30.sp,
             textAlign = TextAlign.Left,
             letterSpacing = (0.02f).sp,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 6,
+            //maxLines = 6,
+            paragraphSize = 20.sp,
 
             alignContent = AlignContent.Left,
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
+                //.height(300.dp)
 
         ) {
             Image(
@@ -86,6 +88,7 @@ fun TextAroundContent(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
+    paragraphSize: TextUnit = 0.sp,
     fontSize: TextUnit = TextUnit.Unspecified,
     fontStyle: FontStyle = FontStyle.Normal,
     typeface: Typeface = Typeface.DEFAULT,
@@ -110,10 +113,8 @@ fun TextAroundContent(
                 }
             )
         } else {
-           modifier
+            modifier
         }
-
-
     ) {
         DrawContent(
             alignContent = alignContent,
@@ -125,6 +126,7 @@ fun TextAroundContent(
         }
         Log.e("AA", "contentSize.value = ${contentSizes.value}")
         Log.e("AA", "viewSize.value = ${viewSize.value}")
+        Log.e("AA", "boxHeight.value = ${boxHeight.value}")
         Canvas(modifier = Modifier
             .fillMaxWidth(),
             onDraw = {
@@ -148,58 +150,73 @@ fun TextAroundContent(
 
                 val maxHeight = viewSize.value.height
 
-                var textBlock = text
+                val paragraph = paragraphSize.toPx()
+
+                val textBlocks = text.split("\n")
 
                 var startLineY: Float
                 var contentWidth: Float
                 var startLineX: Float
                 var maxWidth: Float
 
-                val myLineHeight = if (lineHeight != TextUnit.Unspecified) {
-                    lineHeight.toPx()
-                } else {
-                    fontSize.toPx()
-                }
+                val myLineHeight =
+                    if (lineHeight != TextUnit.Unspecified && lineHeight >= fontSize) {
+                        lineHeight.toPx()
+                    } else {
+                        fontSize.toPx()
+                    }
 
                 var currentLineText: String
                 var chunkSize: Int
                 var lineNumber = 1
                 var heightLimitReached = false
                 var lastLine = maxHeight < myLineHeight * 2 || maxLines == 1
+                var needParagraph: Boolean
 
-                while (textBlock.isNotEmpty() && !heightLimitReached && !lastLine) {
-                    if ((lineNumber + 1) * myLineHeight > maxHeight || lineNumber == maxLines) {
-                        lastLine = true
-                    }
+                textBlocks.forEachIndexed { index, s ->
+                    var textBlock = s
+                    needParagraph = true
 
-                    startLineY = lineNumber * myLineHeight
-                    contentWidth =
-                        calculateContentWidth(contentSizes.value, startLineY - myLineHeight)
-                    startLineX = if (alignContent == AlignContent.Right) 0f else contentWidth
-                    maxWidth = size.width - contentWidth
+                    while (textBlock.isNotEmpty() && !heightLimitReached && !lastLine) {
+                        if ((lineNumber + 1) * myLineHeight > maxHeight || lineNumber == maxLines) {
+                            lastLine = true
+                        }
 
-                    if (lastLine) {
-                        currentLineText = getLastChunk(textBlock, maxWidth, paint, overflow)
-                    } else {
-                        chunkSize = getChunkSize(textBlock, maxWidth, paint)
-                        currentLineText = textBlock.substring(0, chunkSize)
-                        textBlock = textBlock.substring(chunkSize)
-                    }
+                        startLineY = lineNumber * myLineHeight
+                        contentWidth =
+                            calculateContentWidth(contentSizes.value, startLineY - myLineHeight)
+                        startLineX = if (alignContent == AlignContent.Right) 0f else contentWidth
+                        maxWidth = size.width - contentWidth
 
-                    drawIntoCanvas {
-                        it.nativeCanvas.drawText(currentLineText, startLineX, startLineY, paint)
-                    }
+                        if(needParagraph){
+                            startLineX += paragraph
+                            maxWidth -= paragraph
+                        }
 
-                    lineNumber++
-                    if (lineNumber * myLineHeight > maxHeight) {
-                        heightLimitReached = true
+                        if (lastLine) {
+                            currentLineText = getLastChunk(textBlock, maxWidth, paint, overflow)
+                        } else {
+                            chunkSize = getChunkSize(textBlock, maxWidth, paint)
+                            currentLineText = textBlock.substring(0, chunkSize)
+                            textBlock = textBlock.substring(chunkSize)
+                        }
+
+                        drawIntoCanvas {
+                            it.nativeCanvas.drawText(currentLineText, startLineX, startLineY, paint)
+                        }
+
+                        lineNumber++
+                        if (lineNumber * myLineHeight > maxHeight) {
+                            heightLimitReached = true
+                        }
+                        needParagraph = false
                     }
                 }
-                Log.e("AA", "lineNumber = $lineNumber")
-                Log.e("AA", "myLineHeight = $myLineHeight")
+                Log.e("AA","last = $lastLine, heightLimitReached = $heightLimitReached")
+                if(!heightLimitReached){
+                    boxHeight.value = (lineNumber - 1) * myLineHeight
+                }
 
-                boxHeight.value = (lineNumber - 1) * myLineHeight
-                Log.e("AA", "boxHeight ${boxHeight.value}")
             }
         )
     }
