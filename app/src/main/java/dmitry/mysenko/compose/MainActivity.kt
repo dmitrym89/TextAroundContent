@@ -7,9 +7,8 @@ import android.os.Bundle
 import android.text.TextPaint
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -19,15 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -39,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Screen("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
+                Screen("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est. Quisque vitae sapien eu tortor facilisis viverra. Aenean ut lectus risus. Pellentesque nec tellus efficitur, finibus justo ac, efficitur massa. Mauris ac neque nec ipsum eleifend rhoncus. Sed elementum lectus nec nibh suscipit ultrices. Aliquam sodales pharetra orci ut aliquet. Vivamus eu varius magna.")
             }
         }
     }
@@ -47,10 +43,10 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun Screen(text: String) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         TextAroundContent(
             text = text,
@@ -60,10 +56,14 @@ fun Screen(text: String) {
             lineHeight = 30.sp,
             textAlign = TextAlign.Left,
             letterSpacing = (0.02f).sp,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 6,
+
             alignContent = AlignContent.Left,
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxSize()
+                .fillMaxWidth()
+
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -98,16 +98,26 @@ fun TextAroundContent(
     lineHeight: TextUnit = TextUnit.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
-//    style: TextStyle = LocalTextStyle.current,
 
     alignContent: AlignContent = AlignContent.Left,
     content: @Composable () -> Unit
 ) {
     val contentSizes = remember { mutableStateOf(listOf<Size>()) }
     val viewSize = remember { mutableStateOf(Size(0f, 0f)) }
+    val boxHeight = remember { mutableStateOf(0f) }
 
     Box(
-        modifier = modifier
+        modifier = if (boxHeight.value != 0f) {
+            modifier.height(
+                with(LocalDensity.current) {
+                    boxHeight.value.toDp()
+                }
+            )
+        } else {
+           modifier
+        }
+
+
     ) {
         DrawContent(
             alignContent = alignContent,
@@ -119,7 +129,8 @@ fun TextAroundContent(
         }
         Log.e("AA", "contentSize.value = ${contentSizes.value}")
         Log.e("AA", "viewSize.value = ${viewSize.value}")
-        Canvas(modifier = Modifier.fillMaxSize(),
+        Canvas(modifier = Modifier
+            .fillMaxWidth(),
             onDraw = {
 
                 val paint = TextPaint()
@@ -136,8 +147,10 @@ fun TextAroundContent(
                     typeface,
                     if (fontStyle == FontStyle.Normal) Typeface.NORMAL else Typeface.ITALIC
                 )
+
                 paint.letterSpacing = letterSpacing.toPx()
 
+                val maxHeight = viewSize.value.height
 
                 var textBlock = text
 
@@ -145,7 +158,6 @@ fun TextAroundContent(
                 var contentWidth = 0f
                 var startLineX = 0f
                 var maxWidth = 0f
-
 
                 val myLineHeight = if (lineHeight != TextUnit.Unspecified) {
                     lineHeight.toPx()
@@ -155,10 +167,14 @@ fun TextAroundContent(
 
                 var currentLineText = ""
                 var chunkSize = 0
-                var lineNumber = 0
+                var lineNumber = 1
+                var heightLimitReached = false
+                var lastLine = maxHeight < myLineHeight * 2 || maxLines == 1
 
-                while (textBlock.isNotEmpty()) {
-                    lineNumber++
+                while (textBlock.isNotEmpty() && !heightLimitReached && !lastLine) {
+                    if ((lineNumber + 1) * myLineHeight > maxHeight || lineNumber == maxLines) {
+                        lastLine = true
+                    }
 
                     startLineY = lineNumber * myLineHeight
                     contentWidth =
@@ -166,14 +182,28 @@ fun TextAroundContent(
                     startLineX = if (alignContent == AlignContent.Right) 0f else contentWidth
                     maxWidth = size.width - contentWidth
 
-                    chunkSize = getChunk(textBlock, maxWidth, paint)
-                    currentLineText = textBlock.substring(0, chunkSize)
-                    textBlock = textBlock.substring(chunkSize)
+                    if (lastLine) {
+                        currentLineText = getLastChunk(textBlock, maxWidth, paint, overflow)
+                    } else {
+                        chunkSize = getChunkSize(textBlock, maxWidth, paint)
+                        currentLineText = textBlock.substring(0, chunkSize)
+                        textBlock = textBlock.substring(chunkSize)
+                    }
 
                     drawIntoCanvas {
                         it.nativeCanvas.drawText(currentLineText, startLineX, startLineY, paint)
                     }
+
+                    lineNumber++
+                    if (lineNumber * myLineHeight > maxHeight) {
+                        heightLimitReached = true
+                    }
                 }
+                Log.e("AA", "lineNumber = $lineNumber")
+                Log.e("AA", "myLineHeight = $myLineHeight")
+
+                boxHeight.value = (lineNumber - 1) * myLineHeight
+                Log.e("AA", "boxHeight ${boxHeight.value}")
             }
         )
     }
@@ -215,14 +245,15 @@ private fun DrawContent(
 }
 
 
-@Preview(showBackground = true, device = Devices.PIXEL_4_XL)
+//@Preview(showBackground = true, device = Devices.PIXEL_4_XL)
 @Composable
 fun Preview() {
     Screen(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
 }
 
-private fun getChunk(text: String, maxWidth: Float, paint: Paint): Int {
+private fun getChunkSize(text: String, maxWidth: Float, paint: Paint): Int {
     val length = paint.breakText(text, true, maxWidth, null)
+
     if (length <= 0 || length >= text.length || text.getOrNull(length - 1) == ' ') {
         return length
     } else if (text.length > length && text.getOrNull(length) == ' ') {
@@ -239,6 +270,26 @@ private fun getChunk(text: String, maxWidth: Float, paint: Paint): Int {
     return temp + 1
 }
 
+private fun getLastChunk(
+    text: String,
+    maxWidth: Float,
+    paint: Paint,
+    overflow: TextOverflow
+): String {
+    val length = paint.breakText(text, true, maxWidth, null)
+
+    return if (length <= 0 || length >= text.length) {
+        text
+    } else {
+        if (overflow == TextOverflow.Ellipsis) {
+            text.substring(0, length - 3).plus("...")
+        } else {
+            text.substring(0, length)
+        }
+    }
+}
+
+
 private fun calculateContentWidth(sizes: List<Size>, y: Float): Float {
     return sizes.filter { it.height > y }.maxOfOrNull { it.width } ?: 0f
 }
@@ -249,6 +300,10 @@ enum class AlignContent {
 
 enum class TextAlign {
     Left, Right, Center
+}
+
+enum class TextOverflow {
+    Clip, Ellipsis
 }
 
 private data class Size(
