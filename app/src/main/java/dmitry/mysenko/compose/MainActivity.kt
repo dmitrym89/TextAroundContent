@@ -8,7 +8,6 @@ import android.text.TextPaint
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -20,12 +19,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -154,10 +150,10 @@ fun TextAroundContent(
 
                 var textBlock = text
 
-                var startLineY = 0f
-                var contentWidth = 0f
-                var startLineX = 0f
-                var maxWidth = 0f
+                var startLineY: Float
+                var contentWidth: Float
+                var startLineX: Float
+                var maxWidth: Float
 
                 val myLineHeight = if (lineHeight != TextUnit.Unspecified) {
                     lineHeight.toPx()
@@ -165,8 +161,8 @@ fun TextAroundContent(
                     fontSize.toPx()
                 }
 
-                var currentLineText = ""
-                var chunkSize = 0
+                var currentLineText: String
+                var chunkSize: Int
                 var lineNumber = 1
                 var heightLimitReached = false
                 var lastLine = maxHeight < myLineHeight * 2 || maxLines == 1
@@ -246,10 +242,10 @@ private fun DrawContent(
 
 
 //@Preview(showBackground = true, device = Devices.PIXEL_4_XL)
-@Composable
-fun Preview() {
-    Screen(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
-}
+//@Composable
+//fun Preview() {
+//    Screen(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
+//}
 
 private fun getChunkSize(text: String, maxWidth: Float, paint: Paint): Int {
     val length = paint.breakText(text, true, maxWidth, null)
