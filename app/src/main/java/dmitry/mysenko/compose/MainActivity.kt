@@ -5,7 +5,6 @@ import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextPaint
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -50,17 +49,17 @@ fun Screen(text: String) {
             fontSize = 16.sp,
             fontStyle = FontStyle.Italic,
             lineHeight = 30.sp,
-            textAlign = TextAlign.Left,
-            letterSpacing = (0.02f).sp,
+            textAlign = TextAlign.Right,
+            letterSpacing = 0.02f.sp,
             overflow = TextOverflow.Ellipsis,
-            //maxLines = 6,
+            maxLines = 22,
             paragraphSize = 20.sp,
 
-            alignContent = AlignContent.Left,
+            alignContent = AlignContent.Right,
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
-                //.height(300.dp)
+            //.height(300.dp)
 
         ) {
             Image(
@@ -81,6 +80,7 @@ fun Screen(text: String) {
             )
         }
     }
+
 }
 
 @Composable
@@ -124,9 +124,7 @@ fun TextAroundContent(
             }) {
             content()
         }
-        Log.e("AA", "contentSize.value = ${contentSizes.value}")
-        Log.e("AA", "viewSize.value = ${viewSize.value}")
-        Log.e("AA", "boxHeight.value = ${boxHeight.value}")
+
         Canvas(modifier = Modifier
             .fillMaxWidth(),
             onDraw = {
@@ -173,7 +171,7 @@ fun TextAroundContent(
                 var lastLine = maxHeight < myLineHeight * 2 || maxLines == 1
                 var needParagraph: Boolean
 
-                textBlocks.forEachIndexed { index, s ->
+                textBlocks.forEach { s ->
                     var textBlock = s
                     needParagraph = true
 
@@ -185,10 +183,24 @@ fun TextAroundContent(
                         startLineY = lineNumber * myLineHeight
                         contentWidth =
                             calculateContentWidth(contentSizes.value, startLineY - myLineHeight)
-                        startLineX = if (alignContent == AlignContent.Right) 0f else contentWidth
+
                         maxWidth = size.width - contentWidth
 
-                        if(needParagraph){
+                        startLineX = if (alignContent == AlignContent.Right) {
+                            when(textAlign){
+                                TextAlign.Left -> 0f
+                                TextAlign.Right -> size.width - contentWidth
+                                TextAlign.Center -> (size.width - contentWidth)/2
+                            }
+                        } else {
+                            when(textAlign){
+                                TextAlign.Left -> contentWidth
+                                TextAlign.Right -> size.width
+                                TextAlign.Center -> contentWidth + (size.width - contentWidth)/2
+                            }
+                        }
+
+                        if (needParagraph && textAlign == TextAlign.Left) {
                             startLineX += paragraph
                             maxWidth -= paragraph
                         }
@@ -212,8 +224,7 @@ fun TextAroundContent(
                         needParagraph = false
                     }
                 }
-                Log.e("AA","last = $lastLine, heightLimitReached = $heightLimitReached")
-                if(!heightLimitReached){
+                if (!heightLimitReached) {
                     boxHeight.value = (lineNumber - 1) * myLineHeight
                 }
 
