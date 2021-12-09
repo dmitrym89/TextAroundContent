@@ -1,14 +1,12 @@
-package dmitry.mysenko.compose
+package dmitry.mysenko.textaroundcontent.library
 
 import android.graphics.Paint
 import android.graphics.Typeface
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.text.TextPaint
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,77 +17,21 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Screen("Lorem ipsum dolor sit amet, consectetur adipiscing elit. \nNunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. \nAenean congue nisi a dui fringilla, ut lobortis magna lacinia. \nDonec vitae neque enim. Quisque vel ligula lacus. \nPraesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est. \nQuisque vitae sapien eu tortor facilisis viverra. Aenean ut lectus risus. Pellentesque nec tellus efficitur, finibus justo ac, efficitur massa. Mauris ac neque nec ipsum eleifend rhoncus. Sed elementum lectus nec nibh suscipit ultrices. Aliquam sodales pharetra orci ut aliquet. Vivamus eu varius magna.")
-            }
-        }
-    }
-}
-
-@Composable
-fun Screen(text: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-    ) {
-        TextAroundContent(
-            text = text,
-            color = Color.Black,
-            fontSize = 16.sp,
-            fontStyle = FontStyle.Italic,
-            lineHeight = 30.sp,
-            textAlign = TextAlign.Right,
-            letterSpacing = 0.02f.sp,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 22,
-            paragraphSize = 20.sp,
-
-            alignContent = AlignContent.Right,
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-            //.height(300.dp)
-
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "",
-                modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp)
-                    .size(width = 50.dp, height = 150.dp)
-                    .background(color = Color.Cyan)
-            )
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "",
-                modifier = Modifier
-                    .padding(end = 10.dp, top = 10.dp)
-                    .size(width = 150.dp, height = 50.dp)
-                    .background(color = Color.Green)
-            )
-        }
-    }
-
-}
+/**
+ * Created by Dmitry Mysenko on 09.12.2021
+ */
 
 @Composable
 fun TextAroundContent(
     text: String,
     modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
+    color: Color = Color.Black,
     paragraphSize: TextUnit = 0.sp,
-    fontSize: TextUnit = TextUnit.Unspecified,
+    fontSize: TextUnit = 14.sp,
     fontStyle: FontStyle = FontStyle.Normal,
     typeface: Typeface = Typeface.DEFAULT,
     letterSpacing: TextUnit = TextUnit.Unspecified,
@@ -97,7 +39,6 @@ fun TextAroundContent(
     lineHeight: TextUnit = TextUnit.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
-
     alignContent: AlignContent = AlignContent.Left,
     content: @Composable () -> Unit
 ) {
@@ -130,7 +71,6 @@ fun TextAroundContent(
             onDraw = {
 
                 val paint = TextPaint()
-
                 paint.textSize = fontSize.toPx()
                 paint.color = color.toArgb()
                 paint.textAlign = when (textAlign) {
@@ -138,20 +78,17 @@ fun TextAroundContent(
                     TextAlign.Right -> Paint.Align.RIGHT
                     TextAlign.Center -> Paint.Align.CENTER
                 }
-
                 paint.typeface = Typeface.create(
                     typeface,
                     if (fontStyle == FontStyle.Normal) Typeface.NORMAL else Typeface.ITALIC
                 )
-
-                paint.letterSpacing = letterSpacing.toPx()
+                if (letterSpacing != TextUnit.Unspecified) {
+                    paint.letterSpacing = letterSpacing.toPx()
+                }
 
                 val maxHeight = viewSize.value.height
-
                 val paragraph = paragraphSize.toPx()
-
                 val textBlocks = text.split("\n")
-
                 var startLineY: Float
                 var contentWidth: Float
                 var startLineX: Float
@@ -187,16 +124,16 @@ fun TextAroundContent(
                         maxWidth = size.width - contentWidth
 
                         startLineX = if (alignContent == AlignContent.Right) {
-                            when(textAlign){
+                            when (textAlign) {
                                 TextAlign.Left -> 0f
                                 TextAlign.Right -> size.width - contentWidth
-                                TextAlign.Center -> (size.width - contentWidth)/2
+                                TextAlign.Center -> (size.width - contentWidth) / 2
                             }
                         } else {
-                            when(textAlign){
+                            when (textAlign) {
                                 TextAlign.Left -> contentWidth
                                 TextAlign.Right -> size.width
-                                TextAlign.Center -> contentWidth + (size.width - contentWidth)/2
+                                TextAlign.Center -> contentWidth + (size.width - contentWidth) / 2
                             }
                         }
 
@@ -227,7 +164,6 @@ fun TextAroundContent(
                 if (!heightLimitReached) {
                     boxHeight.value = (lineNumber - 1) * myLineHeight
                 }
-
             }
         )
     }
@@ -268,13 +204,6 @@ private fun DrawContent(
     }
 }
 
-
-//@Preview(showBackground = true, device = Devices.PIXEL_4_XL)
-//@Composable
-//fun Preview() {
-//    Screen(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
-//}
-
 private fun getChunkSize(text: String, maxWidth: Float, paint: Paint): Int {
     val length = paint.breakText(text, true, maxWidth, null)
 
@@ -313,7 +242,6 @@ private fun getLastChunk(
     }
 }
 
-
 private fun calculateContentWidth(sizes: List<Size>, y: Float): Float {
     return sizes.filter { it.height > y }.maxOfOrNull { it.width } ?: 0f
 }
@@ -334,4 +262,3 @@ private data class Size(
     val width: Float,
     val height: Float
 )
-

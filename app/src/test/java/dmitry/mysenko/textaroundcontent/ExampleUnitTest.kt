@@ -1,4 +1,4 @@
-package dmitry.mysenko.compose
+package dmitry.mysenko.textaroundcontent
 
 import org.junit.Test
 
