@@ -69,6 +69,7 @@ fun Screen(text: String) {
                     .size(width = 150.dp, height = 50.dp)
                     .background(color = Color.Green)
             )
+
         }
     }
 }

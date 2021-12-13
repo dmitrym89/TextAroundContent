@@ -25,6 +25,25 @@ import androidx.compose.ui.unit.sp
  * Created by Dmitry Mysenko on 09.12.2021
  */
 
+/**
+ * A high-level element that draws text to flow around other content.
+ *
+ * @param text The text to be displayed.
+ * @param modifier [Modifier] to apply to this layout node.
+ * @param color [Color] to apply to the text.
+ * @param paragraphSize Indent after line break. Applies only if the text is [TextAlign.Left].
+ * @param fontSize The size of glyphs to use when painting the text.
+ * @param fontStyle The typeface variant to use when drawing the letters.
+ * @param typeface [Typeface] to apply to the text.
+ * @param letterSpacing The amount of space to add between each letter.
+ * @param textAlign The alignment of the text within the lines of the paragraph.
+ * @param lineHeight Distance between baselines.
+ * @param overflow How visual overflow should be handled.
+ * @param maxLines An optional maximum number of lines for the text to span, wrapping if necessary.
+ * @param alignContent Align content to the left or right side.
+ * @param content The content around which the text will be drawn.
+ *
+ */
 @Composable
 fun TextAroundContent(
     text: String,
@@ -70,6 +89,7 @@ fun TextAroundContent(
             .fillMaxWidth(),
             onDraw = {
 
+                //Applying params to a brush
                 val paint = TextPaint()
                 paint.textSize = fontSize.toPx()
                 paint.color = color.toArgb()
@@ -80,33 +100,34 @@ fun TextAroundContent(
                 }
                 paint.typeface = Typeface.create(
                     typeface,
-                    if (fontStyle == FontStyle.Normal) Typeface.NORMAL else Typeface.ITALIC
+                    if (fontStyle == FontStyle.Italic) Typeface.ITALIC else Typeface.NORMAL
                 )
                 if (letterSpacing != TextUnit.Unspecified) {
                     paint.letterSpacing = letterSpacing.toPx()
                 }
 
+                //Calculation of starting values
                 val maxHeight = viewSize.value.height
                 val paragraph = paragraphSize.toPx()
-                val textBlocks = text.split("\n")
                 var startLineY: Float
                 var contentWidth: Float
                 var startLineX: Float
                 var maxWidth: Float
-
                 val myLineHeight =
                     if (lineHeight != TextUnit.Unspecified && lineHeight >= fontSize) {
                         lineHeight.toPx()
                     } else {
                         fontSize.toPx()
                     }
-
                 var currentLineText: String
                 var chunkSize: Int
                 var lineNumber = 1
                 var heightLimitReached = false
                 var lastLine = maxHeight < myLineHeight * 2 || maxLines == 1
                 var needParagraph: Boolean
+
+                //Break into paragraphs
+                val textBlocks = text.split("\n")
 
                 textBlocks.forEach { s ->
                     var textBlock = s
@@ -169,6 +190,10 @@ fun TextAroundContent(
     }
 }
 
+
+/**
+ * Positioning and Sizing Content
+ */
 @Composable
 private fun DrawContent(
     modifier: Modifier = Modifier,
@@ -204,6 +229,10 @@ private fun DrawContent(
     }
 }
 
+
+/**
+ * A function that calculates the length of a line based on available space and brush properties.
+ */
 private fun getChunkSize(text: String, maxWidth: Float, paint: Paint): Int {
     val length = paint.breakText(text, true, maxWidth, null)
 
@@ -223,6 +252,9 @@ private fun getChunkSize(text: String, maxWidth: Float, paint: Paint): Int {
     return temp + 1
 }
 
+/**
+ * A function that calculates the last line given the overflow parameters
+ */
 private fun getLastChunk(
     text: String,
     maxWidth: Float,
@@ -242,18 +274,30 @@ private fun getLastChunk(
     }
 }
 
+/**
+ * A function that calculates the maximum available line width for a given Y coordinate.
+ */
 private fun calculateContentWidth(sizes: List<Size>, y: Float): Float {
     return sizes.filter { it.height > y }.maxOfOrNull { it.width } ?: 0f
 }
 
+/**
+ * Align content to the left or right side.
+ */
 enum class AlignContent {
     Left, Right
 }
 
+/**
+ * The alignment of the text within the lines of the paragraph.
+ */
 enum class TextAlign {
     Left, Right, Center
 }
 
+/**
+ * How visual overflow should be handled.
+ */
 enum class TextOverflow {
     Clip, Ellipsis
 }
