@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 fun Screen(text: String) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
         TextAroundContent(
@@ -69,7 +69,6 @@ fun Screen(text: String) {
                     .size(width = 150.dp, height = 50.dp)
                     .background(color = Color.Green)
             )
-
         }
     }
 }

@@ -3,6 +3,7 @@ package dmitry.mysenko.textaroundcontent.library
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -170,7 +171,9 @@ fun TextAroundContent(
                             currentLineText = textBlock.substring(0, chunkSize)
                             textBlock = textBlock.substring(chunkSize)
                         }
-
+                        Log.e("AA", "currentLineText = $currentLineText")
+                        Log.e("AA", "startLineX = $startLineX")
+                        Log.e("AA", "startLineY = $startLineY")
                         drawIntoCanvas {
                             it.nativeCanvas.drawText(currentLineText, startLineX, startLineY, paint)
                         }
