@@ -171,9 +171,7 @@ fun TextAroundContent(
                             currentLineText = textBlock.substring(0, chunkSize)
                             textBlock = textBlock.substring(chunkSize)
                         }
-                        Log.e("AA", "currentLineText = $currentLineText")
-                        Log.e("AA", "startLineX = $startLineX")
-                        Log.e("AA", "startLineY = $startLineY")
+
                         drawIntoCanvas {
                             it.nativeCanvas.drawText(currentLineText, startLineX, startLineY, paint)
                         }

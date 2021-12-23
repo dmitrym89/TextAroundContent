@@ -1,16 +1,23 @@
 package dmitry.mysenko.textaroundcontent.sample
 
+import android.inputmethodservice.KeyboardView
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dmitry.mysenko.textaroundcontent.R
@@ -48,7 +55,7 @@ fun Screen(text: String) {
             overflow = TextOverflow.Ellipsis,
             maxLines = 22,
             paragraphSize = 20.sp,
-            alignContent = AlignContent.Right,
+            alignContent = AlignContent.Left,
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
@@ -65,11 +72,17 @@ fun Screen(text: String) {
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "",
                 modifier = Modifier
-                    .padding(start = 10.dp, top = 10.dp)
+                    .padding(end = 10.dp, top = 10.dp)
                     .size(width = 150.dp, height = 50.dp)
                     .background(color = Color.Green)
             )
         }
     }
 }
+
+//@Preview(showBackground = true, device = Devices.PIXEL_4_XL)
+//@Composable
+//fun Preview() {
+//    Screen(text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae velit lorem. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean congue nisi a dui fringilla, ut lobortis magna lacinia. Donec vitae neque enim. Quisque vel ligula lacus. Praesent id tincidunt dolor, vel lacinia erat. Suspendisse potenti. Donec porta orci id augue pellentesque, tincidunt placerat velit pretium. Sed sed pharetra sem. Phasellus eros massa, ultrices ut elit a, interdum consectetur leo. Etiam a sem est.")
+//}
 
