@@ -1,9 +1,8 @@
 package dmitry.mysenko.textaroundcontent.sample
 
-import android.inputmethodservice.KeyboardView
+import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -15,11 +14,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
 import dmitry.mysenko.textaroundcontent.R
 import dmitry.mysenko.textaroundcontent.library.AlignContent
 import dmitry.mysenko.textaroundcontent.library.TextAlign
@@ -53,6 +54,7 @@ fun Screen(text: String) {
             textAlign = TextAlign.Left,
             letterSpacing = 0.02f.sp,
             overflow = TextOverflow.Ellipsis,
+            typeface= ResourcesCompat.getFont(LocalContext.current, R.font.pacifico) ?: Typeface.DEFAULT,
             maxLines = 22,
             paragraphSize = 20.sp,
             alignContent = AlignContent.Left,
